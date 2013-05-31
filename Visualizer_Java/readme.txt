@@ -1,0 +1,1 @@
+-d32 -Djava.library.path=lib/jogl/jogl.jar-natives-macosx-universal
