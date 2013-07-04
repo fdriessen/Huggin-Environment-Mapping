@@ -1,0 +1,14 @@
+package udpReader;
+
+public class buffer {
+	private Point[] frame;
+	
+	public synchronized void setFrame(int[] frame) {
+		
+		this.frame = frame;
+	}
+	
+	public synchronized int[] getFrame() {
+		return this.frame;
+	}
+}

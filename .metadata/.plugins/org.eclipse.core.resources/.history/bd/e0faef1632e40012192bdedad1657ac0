@@ -1,0 +1,148 @@
+package OpenGL;
+
+import java.awt.Dimension;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
+import java.util.Vector;
+import javax.media.opengl.GL;
+import javax.media.opengl.GLAutoDrawable;
+import javax.media.opengl.GLCanvas;
+import javax.media.opengl.GLEventListener;
+import javax.media.opengl.glu.GLU;
+import util.TrackballInteractor;
+import renderer.*;
+
+
+public class OpenGL implements GLEventListener {
+
+	  GLU glu = new GLU();
+	  GLCanvas canvas;
+	  int winWidth, winHeight;
+	  double fov = 20.0;
+	  TrackballInteractor trackball;
+	  Vector<Renderer> renderers = new Vector<Renderer>();
+	  
+	  public void update() {
+	        //canvas.repaint(50);
+	    }
+	  
+	  public void addRenderer(Renderer render) {
+	        renderers.addElement(render);
+	    }
+	  
+	  public OpenGL(GLCanvas canvas) {
+	        this.canvas = canvas;
+	        canvas.addMouseMotionListener(new MouseMotionListener()); // listens to drag events
+	        canvas.addMouseListener(new MousePressListener());
+	        canvas.addMouseWheelListener(new MouseWheelHandler());
+	        trackball = new TrackballInteractor(winWidth, winHeight);
+	    }
+	  
+	  public void init(GLAutoDrawable drawable) {
+		}
+
+		public void reshape(GLAutoDrawable drawable, int x, int y, int width,
+				int height) {
+		        GL gl = drawable.getGL();
+		        gl.glViewport(0, 0, (width-100), height);
+
+		        winWidth = width;
+		        winHeight = height;
+		        trackball.setDimensions((width-100), height);
+		        canvas.setMinimumSize(new Dimension(0,0));
+			
+		}
+
+		public void display(GLAutoDrawable drawable) {
+		    GL gl = drawable.getGL();
+		    gl.glMatrixMode(GL.GL_PROJECTION);
+	        gl.glLoadIdentity();
+	        
+	        gl.glRotated(180,90,0,0);
+	        
+	        glu.gluPerspective(fov, ((float) winWidth/((float) winHeight)), 0.5, 2000);
+	        
+	        gl.glTranslated(0, 0, -10);
+	        
+	        //gl.glRotated(45,0,0,0);
+	        //gl.glRotated(45,0,0,0);
+	        //gl.glRotated(45,0,0,0);
+	        //gl.glRotated(20,0,0,0);
+	       // gl.glRotated(20,0,0,0);
+	        //gl.glRotated(45,0,0,0);
+	        //gl.glRotated(45,0,0,0);
+	        
+	        // clear screen and set the view transform to the identity matrix
+	        gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	        gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
+	        gl.glMatrixMode(GL.GL_MODELVIEW);
+	        gl.glLoadIdentity();
+	       // gl.glEnable(GL.GL_DEPTH_TEST);
+	        gl.glDepthFunc(GL.GL_LESS);
+
+	       if (trackball.isRotating()) {
+	           // when dragging the mouse, keep updating the virtual trackball
+	           trackball.updateTransform(gl);
+	       }
+	       
+	       // multiply the current view transform (identity) with trackball transform
+	       gl.glMultMatrixd(trackball.getTransformationMatrix(), 0);
+			
+	       for (int i = 0; i < renderers.size(); i++) {
+	            renderers.elementAt(i).visualize(gl);
+	            // blocking call ensures drawing of renderer is completed before
+	            // next one starts
+	            gl.glFlush();
+	        }
+	       
+	       canvas.repaint(50);
+		}
+
+		public void displayChanged(GLAutoDrawable drawable, boolean modeChanged,
+				boolean deviceChanged) {
+		}
+	  
+	  
+	  class MousePressListener extends MouseAdapter {
+
+	       @Override
+	       public void mousePressed(MouseEvent e) {
+	           trackball.setMousePos(e.getX(), e.getY());
+	       }
+	       
+	       @Override
+	       public void mouseReleased(MouseEvent e) {
+	           update();
+	       }
+	   }
+	   
+	    class MouseMotionListener extends MouseMotionAdapter {
+	      @Override
+	        public void mouseDragged(MouseEvent e) {
+	             trackball.drag(e.getX(), e.getY());
+	             trackball.setRotating(true);
+	             update();
+	          }
+	          
+	        }
+	    
+	    class MouseWheelHandler implements MouseWheelListener {
+
+	        @Override
+	        public void mouseWheelMoved(MouseWheelEvent e) {
+	            if (e.getWheelRotation() < 0) { // up
+	                fov--;
+	                if (fov < 2) {
+	                    fov = 2;
+	                }
+	            } else { // down
+	                fov++;
+	            }
+	            update();
+	        }
+	    }
+
+}

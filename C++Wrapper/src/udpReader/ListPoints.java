@@ -1,0 +1,23 @@
+package udpReader;
+
+import java.io.Serializable;
+import java.util.List;
+
+
+public class ListPoints implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 2L;
+	List<Point[]> points  = null;
+			
+	public void setList(List<Point[]> points) {
+		this.points = points;
+	}
+	
+	public List<Point[]> getList() {
+		
+		return points;
+	}
+}

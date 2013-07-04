@@ -1,0 +1,35 @@
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+
+
+public class main {
+
+	/**
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+		try {
+			DatagramSocket clientSocket = new DatagramSocket(8888);
+			InetAddress IPAddress = InetAddress.getByAddress(new byte[] {(byte)192, (byte)168, 1, 10});
+
+			clientSocket.setSoTimeout(5000);
+			byte[] receiveData = new byte[1024];
+		
+			DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length, IPAddress, 8888);
+			System.out.print("probeer");
+			clientSocket.receive(receivePacket);
+
+		
+			String modifiedSentence = new String(receivePacket.getData());
+			System.out.println("FROM SERVER:" + modifiedSentence);      
+			clientSocket.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			System.out.println("hallo");
+		}
+	}
+
+}

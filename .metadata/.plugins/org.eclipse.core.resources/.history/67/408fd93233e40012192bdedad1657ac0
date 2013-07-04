@@ -1,0 +1,20 @@
+package Panel;
+
+import java.awt.*;
+
+import javax.swing.*;
+
+public class Controls extends JPanel {
+	public Controls ()  
+    {  
+        this.setBackground (Color.blue);  
+        Dimension d1 = new Dimension(200, 150);  
+        this.setMaximumSize(d1);  
+    }
+	
+	public void paintComponent (Graphics g)  
+    {  
+        super.paintComponent(g);  
+        g.drawString ("Hello World!", 100, 100);  
+    }
+}

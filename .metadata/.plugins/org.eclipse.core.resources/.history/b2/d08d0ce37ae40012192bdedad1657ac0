@@ -1,0 +1,174 @@
+package renderer;
+
+import javax.media.opengl.GL;
+
+//import com.sun.opengl.util.GLUT;
+
+//import org.openkinect.processing.*;
+
+import processing.core.PVector;
+
+import java.io.*;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.util.*;
+import udpReader.buffer;
+import udpReader.Point;
+import udpReader.ListPoints;
+
+public class KinectRenderer extends Renderer {
+
+	public int size = 4;
+	public buffer frameBuffer;
+	float[] depthLookUp = new float[2048];
+	int w = 640;
+    int h = 480;
+    List<int[]> testmap = null;
+    List<int[]> writetestmap = new ArrayList<int[]>();
+    List<Point[]> points = null;
+    int counter = 0;
+    int counterWrite = 0;
+	
+    public static int[] convert(byte buf[]) {
+		   int intArr[] = new int[buf.length / 2];
+		   for(int i = 0; i < intArr.length; i= i+2) {
+		      intArr[i] = ByteBuffer.wrap(new byte[] {buf[i], buf[i+1]}).order(ByteOrder.LITTLE_ENDIAN).getShort();
+		   }
+		   return intArr;
+		}
+    
+    public int[] readUDP() {
+    	try {
+            int port = 8888;
+            DatagramSocket dsocket = new DatagramSocket(port);
+            byte[] buffer = new byte[614400];
+            byte[] buffer2 = new byte[0];
+            boolean frame = false;
+ 
+            DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+            while (true) {
+                dsocket.receive(packet);
+                
+                if(packet.getLength() < 6) {
+                	String msg = new String(buffer, 0, packet.getLength());
+
+                	if(msg.equals("start") == true) {
+                		//System.out.println("start");
+                		frame = true;
+                		buffer2 = new byte[0];
+                	}
+                	if(msg.equals("end") == true) {
+                		//System.out.println("end");
+                		frame = false;
+                		dsocket.close();
+                		return convert(buffer2);
+                	}
+                	
+                } else {
+                	
+                	if(frame == true) {
+                		
+                		byte[] temp = new byte[buffer2.length + (packet.getLength()-2)];
+                		System.arraycopy(buffer2,0,temp,0,buffer2.length);
+                		System.arraycopy(packet.getData(),2,temp,buffer2.length,(packet.getLength()-2));
+                		buffer2 = temp;
+                	}
+
+                }
+
+                packet.setLength(buffer.length);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    	
+    	return null;
+    	
+    }
+    
+    public Point[] readPoints(int index) {
+    	
+    	if(points == null) {
+    	try {
+		FileInputStream fis = new FileInputStream("outputPoints.txt");
+		ObjectInputStream restore = new ObjectInputStream(fis);
+		//List<int[]> testmap = new ArrayList<int[]>();	
+		ListPoints list = (ListPoints)restore.readObject();
+		
+		points = list.getList();
+		
+		
+		System.out.println(points.size());
+		restore.close();
+		return points.get(index);
+		
+		/*for(int i=0; i < testmap.size(); i++) {
+			int test[] = testmap.get(i);
+			System.out.println("array:"+ test);
+		}*/
+    	} catch (IOException e) {
+    		System.out.println("test");
+    		return null;
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			System.out.println("read"+e.getMessage());
+			return null;
+		}
+    	} else {
+    		
+    		return points.get(index);
+    	}
+		
+	}
+    
+    public int[] read(int index) {
+    	
+    	if(testmap == null) {
+    	try {
+		FileInputStream fis = new FileInputStream("text.txt");
+		ObjectInputStream restore = new ObjectInputStream(fis);
+		//List<int[]> testmap = new ArrayList<int[]>();	
+		testmap = (ArrayList<int[]>)restore.readObject();
+		restore.close();
+		return testmap.get(index);
+		
+		/*for(int i=0; i < testmap.size(); i++) {
+			int test[] = testmap.get(i);
+			System.out.println("array:"+ test);
+		}*/
+    	} catch (IOException e) {
+    		System.out.println("read"+e.getMessage());
+    		return null;
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			System.out.println("test123");
+			return null;
+		}
+    	} else {
+    		
+    		return testmap.get(index);
+    	}
+		
+	}
+      
+    public void visualize(GL gl) {
+    	gl.glPointSize(size);
+		
+		gl.glBegin(GL.GL_POINTS);
+		gl.glEnable(gl.GL_PROGRAM_POINT_SIZE_EXT);
+
+		Point[] pointField = frameBuffer.getFrame();
+		if(pointField.length != 0) {
+			for(int i=0; i<pointField.length; i++) {	
+				Point point = pointField[i];
+				gl.glVertex3f(point.x,point.y,point.z);
+
+			}
+		}
+		
+		gl.glColor3f(1.0f,1.0f,1.0f);
+		gl. glEnd();
+    }
+}

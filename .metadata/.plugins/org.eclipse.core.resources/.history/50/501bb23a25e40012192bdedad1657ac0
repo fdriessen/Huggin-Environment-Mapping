@@ -1,0 +1,12 @@
+package udpReader;
+
+
+public class PointCloudStitcher {
+	public native void icp();
+	public native void KinectData(int[] depth);
+	public native Object[] getPoints();
+	public native Object[] getInputPoints();
+    static {
+        System.loadLibrary("PointCloudStitcher");
+    }
+}

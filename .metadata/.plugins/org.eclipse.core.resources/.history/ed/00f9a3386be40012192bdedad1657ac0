@@ -1,0 +1,115 @@
+package Panel;
+
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+import javax.swing.*;
+
+public class Controls extends JPanel implements ActionListener {
+	
+	private JButton startUDP,stopUDP, loadFILE,saveFILE;
+	private JLabel labelUDP,labelFILE;
+	
+	public Controls ()  
+    {  
+        this.setBackground (Color.black);  
+        Dimension d1 = new Dimension(50, 150);  
+        this.setMaximumSize(d1); 
+        this.setLayout(new GridLayout(18,0));
+        
+        labelUDP = new JLabel("UDP STREAM");
+        labelUDP.setForeground(Color.white);
+        //label.setVerticalTextPosition((int) this.CENTER_ALIGNMENT);
+        
+        startUDP = new JButton("Start") {
+            {
+                setSize(50, 30);
+                setMaximumSize(new Dimension(50,30));
+            }
+        };
+        stopUDP = new JButton("Stop") {
+            {
+                setSize(50, 30);
+                setMaximumSize(new Dimension(50,30));
+            }
+        };
+        
+        startUDP.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+            	startUDPButtonActionPerformed(evt);
+            }
+        });
+        
+        stopUDP.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+            	saveFILEButtonActionPerformed(evt);
+            }
+        });
+        
+        this.add(labelUDP);
+        this.add(startUDP);
+        this.add(stopUDP);
+        
+        
+        labelFILE = new JLabel("FILE SYSTEM");
+        labelFILE.setForeground(Color.white);
+        
+        loadFILE = new JButton("Load Cloud") {
+            {
+                setSize(50, 30);
+                setMaximumSize(new Dimension(50,30));
+            }
+        };
+        
+        loadFILE.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+            	saveFILEButtonActionPerformed(evt);
+            }
+        });
+        
+        saveFILE = new JButton("Save Cloud") {
+            {
+                setSize(50, 30);
+                setMaximumSize(new Dimension(50,30));
+            }
+        };
+        
+        saveFILE.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+            	saveFILEButtonActionPerformed(evt);
+            }
+        });
+        
+        this.add(labelFILE);
+        this.add(loadFILE);
+        this.add(saveFILE);
+        
+        
+    }
+	
+	public void paintComponent (Graphics g)  
+    {  
+        super.paintComponent(g);  
+        g.drawString ("Hello World!", 10, 100);  
+        
+        //this.add(start);
+        //this.add(stop);
+    }
+	
+	private void startUDPButtonActionPerformed(java.awt.event.ActionEvent evt) {
+	    labelFILE.setText("test");
+	}
+	
+	private void stopUDPButtonActionPerformed(java.awt.event.ActionEvent evt) {
+	    labelFILE.setText("test");
+	}
+	
+	private void loadFILEButtonActionPerformed(java.awt.event.ActionEvent evt) {
+	    labelFILE.setText("test");
+	}
+	
+	private void saveFILEButtonActionPerformed(java.awt.event.ActionEvent evt) {
+	    labelFILE.setText("test");
+	}
+}

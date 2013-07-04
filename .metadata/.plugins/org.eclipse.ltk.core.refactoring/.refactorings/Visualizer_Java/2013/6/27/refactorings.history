@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Rename type &apos;udpReader.PointCloudSticher&apos; to &apos;PointCloudStitcher&apos;&#x0A;- Original project: &apos;Visualizer_Java&apos;&#x0A;- Original element: &apos;udpReader.PointCloudSticher&apos;&#x0A;- Renamed element: &apos;udpReader.PointCloudStitcher&apos;&#x0A;- Update references to refactored element&#x0A;- Update textual occurrences in comments and strings" description="Rename type &apos;PointCloudSticher&apos;" flags="589830" id="org.eclipse.jdt.ui.rename.type" input="/src&lt;udpReader{PointCloudSticher.java[PointCloudSticher" matchStrategy="1" name="PointCloudStitcher" qualified="false" references="true" similarDeclarations="false" stamp="1372624355165" textual="false" version="1.0"/>
+</session>

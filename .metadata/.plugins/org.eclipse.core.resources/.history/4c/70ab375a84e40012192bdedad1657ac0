@@ -1,0 +1,116 @@
+package udpReader;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.util.ArrayList;
+import java.util.List;
+
+public class fileThread extends Thread {
+	private volatile boolean running = true;
+	private buffer frameBuffer;
+	private PointCloudStitcher stitcher;
+	private boolean runICP = false;
+	List<int[]> testmap = null;
+	int counter = 0;
+	int max = 10;
+	
+	public fileThread(buffer buf,PointCloudStitcher stitcher) {
+		this.frameBuffer = buf;
+		this.stitcher = stitcher;
+	}
+	
+	public int[] read(int index) {
+    	
+    	if(testmap == null) {
+    	try {
+		FileInputStream fis = new FileInputStream("text.txt");
+		ObjectInputStream restore = new ObjectInputStream(fis);
+		//List<int[]> testmap = new ArrayList<int[]>();	
+		testmap = (ArrayList<int[]>)restore.readObject();
+		restore.close();
+		max = testmap.size()-1;
+		return testmap.get(index);
+		
+		/*for(int i=0; i < testmap.size(); i++) {
+			int test[] = testmap.get(i);
+			System.out.println("array:"+ test);
+		}*/
+    	} catch (IOException e) {
+    		System.out.println("read"+e.getMessage());
+    		return null;
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			System.out.println("test123");
+			return null;
+		}
+    	} else {
+    		
+    		return testmap.get(index);
+    	}
+		
+	}
+	
+	 public void run() {
+		System.out.println("start");
+		while(true)
+        {
+		//stitcher = new PointCloudStitcher();
+			while (running) {
+			
+			
+				if(counter < max) {
+				
+					int[] frames = read(counter);
+				
+					if(frames.length == 307200) {
+        			
+        				stitcher.KinectData(frames);
+        				//stitcher.icp();
+        				//Point[] results = (Point[])stitcher.getInputPoints();
+        				//Point[] results = (Point[])stitcher.getInputPoints();
+        				Point[] results = new Point[0];
+        				if(runICP) {
+        					System.out.println("stitch");
+        					//stitcher.icp();
+        					results = (Point[])stitcher.getInputPoints();
+        				} else {
+        					results = (Point[])stitcher.getInputPoints();
+        				}
+        				frameBuffer.setFrame(results);
+					}
+
+					counter++;
+				} else {
+					counter = 0;
+				}
+				/*try {
+			    	Thread.sleep(250);
+				} catch(InterruptedException ex) {
+			    	Thread.currentThread().interrupt();
+				}*/
+			}
+        }
+
+	}
+	public void pauseThread() throws InterruptedException
+	{
+		running = false;
+	}
+
+	public void resumeThread()
+	{
+		running = true;
+	}
+	public boolean checkStatus() {
+		return running;
+	}
+	
+	public void setICPRun(Boolean run) {
+		this.runICP = run;
+	}
+}

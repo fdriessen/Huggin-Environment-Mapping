@@ -1,0 +1,30 @@
+import java.io.*;
+import java.net.*;
+
+
+public class udpClient {
+
+	
+	public void recieve() {
+		try {
+			DatagramSocket clientSocket = new DatagramSocket();
+			InetAddress IPAddress;
+			IPAddress = InetAddress.getByName("192.168.1.10");
+
+			byte[] receiveData = new byte[614400];
+		
+			DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length, IPAddress, 8888);
+			System.out.print("probeer");
+			clientSocket.receive(receivePacket);
+
+		
+			String modifiedSentence = new String(receivePacket.getData());
+			System.out.println("FROM SERVER:" + modifiedSentence);      
+			clientSocket.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			System.out.println("hallo");
+		}
+		
+	}
+}

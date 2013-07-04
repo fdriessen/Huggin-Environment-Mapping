@@ -1,0 +1,225 @@
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Frame;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+
+//import org.openkinect.*;
+//import org.openkinect.processing.*;
+
+import processing.core.PApplet;
+
+import javax.media.opengl.GLCanvas;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JSplitPane;
+
+import OpenGL.OpenGL;
+import renderer.KinectRenderer;
+import renderer.TestRenderer;
+
+import udpReader.*;
+
+public class MainClass {
+	//Kinect kinect;
+	
+	private JButton startUDP,stopUDP, loadFILE,saveFILE, resetFILE;
+	private JLabel labelUDP,labelFILE;
+	prvaite JCheckBox icpUDP;
+	private buffer frameBuffer;
+	private readerThread udp;
+	private fileThread file;
+	private PointCloudStitcher stitcher;
+	
+	public MainClass() {
+		Frame frame = new Frame("OpenGL");
+		GLCanvas canvas = new GLCanvas();
+		OpenGL openGL = new OpenGL(canvas);
+		
+		KinectRenderer renderer = new KinectRenderer();
+		openGL.addRenderer(renderer);
+		
+		canvas.addGLEventListener(openGL);
+		renderer.size = 1;
+		
+				
+		JPanel panel = new JPanel();
+		panel.setBackground (Color.black);
+		panel.setMaximumSize(new Dimension(50, 150));
+		panel.setLayout(new GridLayout(18,0));
+		
+		labelUDP = new JLabel("UDP STREAM");
+        labelUDP.setForeground(Color.white);
+        
+        startUDP = new JButton("Start") {
+            {
+                setSize(50, 30);
+                setMaximumSize(new Dimension(50,30));
+            }
+        };
+        stopUDP = new JButton("Stop") {
+            {
+                setSize(50, 30);
+                setMaximumSize(new Dimension(50,30));
+            }
+        };
+        
+        startUDP.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+            	startUDPButtonActionPerformed(evt);
+            }
+        });
+        
+        stopUDP.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+            	stopUDPButtonActionPerformed(evt);
+            }
+        });
+        
+        JPanel checkbox = new JPanel();
+        
+        
+        panel.add(labelUDP);
+        panel.add(startUDP);
+        panel.add(stopUDP);
+        
+        
+        labelFILE = new JLabel("FILE SYSTEM");
+        labelFILE.setForeground(Color.white);
+        
+        loadFILE = new JButton("Load Cloud") {
+            {
+                setSize(50, 30);
+                setMaximumSize(new Dimension(50,30));
+            }
+        };
+        
+        loadFILE.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+            	loadFILEButtonActionPerformed(evt);
+            }
+        });
+        
+        saveFILE = new JButton("Save Cloud") {
+            {
+                setSize(50, 30);
+                setMaximumSize(new Dimension(50,30));
+            }
+        };
+        
+        saveFILE.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+            	saveFILEButtonActionPerformed(evt);
+            }
+        });
+        
+        resetFILE = new JButton("Reset Cloud") {
+        	{
+        		setSize(50,30);
+        		setMaximumSize(new Dimension(50,30));
+        	}
+        };
+        
+        resetFILE.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+            	resetFILEButtonActionPerformed(evt);
+            }
+        });
+        
+        panel.add(labelFILE);
+        panel.add(loadFILE);
+        panel.add(saveFILE);
+        panel.add(resetFILE);
+		
+		
+		frameBuffer = new buffer();
+		stitcher = new PointCloudStitcher();
+		udp = new readerThread(frameBuffer,stitcher);
+		file = new fileThread(frameBuffer,stitcher);
+		//udp.start();
+		//file.start();
+		renderer.frameBuffer = frameBuffer;
+		
+		frame.setLayout(new GridBagLayout());
+		GridBagConstraints gbc = new GridBagConstraints();
+        gbc.anchor = GridBagConstraints.FIRST_LINE_START;
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.weightx = 0.8;
+        gbc.weighty = 1.0;
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        
+        frame.add(canvas, gbc);
+        gbc.weightx = 0.2;
+        gbc.gridx = 1;
+        frame.add(panel, gbc);
+
+		
+		frame.setSize(740, 480);
+		frame.setVisible(true);
+		frame.addWindowListener(new WindowAdapter() {
+			public void windowClosing(WindowEvent e) {
+				System.exit(0);
+			}
+		});
+        
+    }
+	
+	private void startUDPButtonActionPerformed(java.awt.event.ActionEvent evt) {
+
+		if(!file.isAlive()) {
+			file.start();
+		} else {
+			if(!file.checkStatus()) {
+				file.resumeThread();
+			}
+		}
+	    //udp.start();
+	}
+	
+	private void stopUDPButtonActionPerformed(java.awt.event.ActionEvent evt) {
+	    //labelFILE.setText("test");
+	    if(file.isAlive()) {
+	    	if(file.checkStatus()) {
+	    		try {
+					file.pauseThread();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+	    	}
+	    }
+	}
+	
+	private void loadFILEButtonActionPerformed(java.awt.event.ActionEvent evt) {
+	    //labelFILE.setText("test");
+	    stitcher.loadOutputCloud();
+	    
+	    Point[] frame = (Point[])stitcher.getPoints();
+	    
+	    frameBuffer.setFrame(frame);
+	}
+	
+	private void saveFILEButtonActionPerformed(java.awt.event.ActionEvent evt) {
+	    //labelFILE.setText("test");
+		stitcher.setInputOutput();
+	    stitcher.saveOutputCloud();
+	}
+	
+	private void resetFILEButtonActionPerformed(java.awt.event.ActionEvent evt) {
+	    //labelFILE.setText("test");
+		stitcher.resetOutputCloud();
+		Point[] frame = (Point[])stitcher.getPoints();
+	    
+	    frameBuffer.setFrame(frame);
+	}
+	
+	public static void main(String[] args) {
+		new MainClass();
+	}
+}

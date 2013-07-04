@@ -1,0 +1,40 @@
+import java.io.*;
+import java.net.*;
+
+
+public class udpClient {
+
+	
+	public void recieve() {
+		BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
+		DatagramSocket clientSocket;
+		
+		try {
+			clientSocket = new DatagramSocket();
+		} catch (SocketException e2) {
+			// TODO Auto-generated catch block
+			e2.printStackTrace();
+		}
+		InetAddress IPAddress;
+		try {
+			IPAddress = InetAddress.getByName("192.168.1.10");
+		} catch (UnknownHostException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		byte[] receiveData = new byte[614400];
+		
+		DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length, IPAddress, 8888);
+		try {
+			clientSocket.receive(receivePacket);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		String modifiedSentence = new String(receivePacket.getData());
+		System.out.println("FROM SERVER:" + modifiedSentence);      
+		clientSocket.close();
+		
+	}
+}

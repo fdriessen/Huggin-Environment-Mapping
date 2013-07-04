@@ -1,0 +1,104 @@
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+
+
+public class Main {
+
+	/**
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+		
+		
+		PointCloudStitcher test = new PointCloudStitcher();
+		
+		int[] depth = null;
+    	List<int[]> testmap = null;
+    	List<Point[]> points  = new ArrayList<Point[]>();
+    	
+    	try {
+    		FileInputStream fis = new FileInputStream("text.txt");
+    		ObjectInputStream restore = new ObjectInputStream(fis);
+    		
+    		
+    		testmap = (ArrayList<int[]>)restore.readObject();
+    		restore.close();
+
+    	} catch (IOException e) {
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+		}
+    	
+    	depth = testmap.get(1);
+    	test.KinectData(depth);
+    	test.icp();
+    	
+Point[] results = (Point[])test.getPoints();
+    	
+    	System.out.println(results.length);
+    	
+    	/*for(int i =0 ; i < results.length; i++) {
+    		
+    		results[i].print();
+    		
+    	}*/
+    	for(int i=2; i< 5; i++) {
+    		depth = testmap.get(i);
+    		test.KinectData(depth);
+    		test.icp();
+    		results = (Point[])test.getPoints();
+    		points.add(results);
+    		System.out.println("i:"+i+"-"+results.length);
+    	}
+    	/*for(int i =0 ; i < results.length; i++) {
+    		
+    		results[i].print();
+    		
+    	}*/
+    	
+    	ListPoints list = new ListPoints();
+    	
+    	list.setList(points);
+    	
+		try {
+			FileOutputStream file;
+			file = new FileOutputStream("outputPoints.txt");
+		
+			ObjectOutputStream stream = new ObjectOutputStream(file);
+			stream.writeObject(list);
+			stream.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		System.out.println("klaar");
+		
+	}
+}
+
+class ListPoints implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 2L;
+	List<Point[]> points  = null;
+			
+	public void setList(List<Point[]> points) {
+		this.points = points;
+	}
+	
+	public List<Point[]> getList() {
+		
+		return points;
+	}
+}
+

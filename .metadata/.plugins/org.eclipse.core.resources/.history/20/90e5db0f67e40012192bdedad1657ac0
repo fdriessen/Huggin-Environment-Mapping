@@ -1,0 +1,40 @@
+package Panel;
+
+import java.awt.*;
+
+import javax.swing.*;
+
+public class Controls extends JPanel {
+	
+	private JButton start,stop;
+	
+	public Controls ()  
+    {  
+        this.setBackground (Color.blue);  
+        Dimension d1 = new Dimension(50, 150);  
+        this.setMaximumSize(d1); 
+        this.setLayout(new GridLayout(1,2));
+        
+        start = new JButton("Start") {
+            {
+                setSize(150, 30);
+                setMaximumSize(getSize());
+            }
+        };
+        stop = new JButton("Stop") {
+            {
+                setSize(150, 30);
+                setMaximumSize(getSize());
+            }
+        };
+    }
+	
+	public void paintComponent (Graphics g)  
+    {  
+        super.paintComponent(g);  
+        g.drawString ("Hello World!", 10, 100);  
+        
+        this.add(start);
+        this.add(stop);
+    }
+}

@@ -8,5 +8,5 @@
 </listAttribute>
 <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="MainClass"/>
 <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="Visualizer_Java"/>
-<stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-d32 -Djava.library.path=lib/jogl/jogl.jar-natives-macosx-universal"/>
+<stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Djava.library.path=lib/jogl/jogl.jar-natives-macosx-universal"/>
 </launchConfiguration>

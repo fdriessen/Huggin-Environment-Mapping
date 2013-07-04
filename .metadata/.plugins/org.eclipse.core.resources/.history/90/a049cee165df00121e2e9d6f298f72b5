@@ -1,0 +1,359 @@
+package renderer;
+
+import javax.media.opengl.GL;
+
+import com.sun.opengl.util.GLUT;
+
+import org.openkinect.processing.*;
+
+import processing.core.PVector;
+
+import java.io.*;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.util.*;
+import udpReader.buffer;
+import udpReader.Point;
+import udpReader.ListPoints;
+
+public class KinectRenderer extends Renderer {
+
+	public int size = 4;
+	public Kinect kinect;
+	public buffer frameBuffer;
+	float[] depthLookUp = new float[2048];
+	int w = 640;
+    int h = 480;
+    List<int[]> testmap = null;
+    List<int[]> writetestmap = new ArrayList<int[]>();
+    List<Point[]> points = null;
+    int counter = 17;
+    int counterWrite = 0;
+	
+    public static int[] convert(byte buf[]) {
+		   int intArr[] = new int[buf.length / 2];
+		   for(int i = 0; i < intArr.length; i= i+2) {
+		      intArr[i] = ByteBuffer.wrap(new byte[] {buf[i], buf[i+1]}).order(ByteOrder.LITTLE_ENDIAN).getShort();
+		   }
+		   return intArr;
+		}
+    
+    public int[] readUDP() {
+    	try {
+            int port = 8888;
+            DatagramSocket dsocket = new DatagramSocket(port);
+            byte[] buffer = new byte[614400];
+            byte[] buffer2 = new byte[0];
+            boolean frame = false;
+ 
+            DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+            while (true) {
+                dsocket.receive(packet);
+                
+                if(packet.getLength() < 6) {
+                	String msg = new String(buffer, 0, packet.getLength());
+
+                	if(msg.equals("start") == true) {
+                		//System.out.println("start");
+                		frame = true;
+                		buffer2 = new byte[0];
+                	}
+                	if(msg.equals("end") == true) {
+                		//System.out.println("end");
+                		frame = false;
+                		dsocket.close();
+                		return convert(buffer2);
+                	}
+                	
+                } else {
+                	
+                	if(frame == true) {
+                		
+                		byte[] temp = new byte[buffer2.length + (packet.getLength()-2)];
+                		System.arraycopy(buffer2,0,temp,0,buffer2.length);
+                		System.arraycopy(packet.getData(),2,temp,buffer2.length,(packet.getLength()-2));
+                		buffer2 = temp;
+                	}
+
+                }
+
+                packet.setLength(buffer.length);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    	
+    	return null;
+    	
+    }
+    
+    public Point[] readPoints(int index) {
+    	
+    	if(points == null) {
+    	try {
+		FileInputStream fis = new FileInputStream("outputPoints.txt");
+		ObjectInputStream restore = new ObjectInputStream(fis);
+		//List<int[]> testmap = new ArrayList<int[]>();	
+		ListPoints list = (ListPoints)restore.readObject();
+		
+		points = list.getList();
+		
+		
+		System.out.println(points.size());
+		restore.close();
+		return points.get(index);
+		
+		/*for(int i=0; i < testmap.size(); i++) {
+			int test[] = testmap.get(i);
+			System.out.println("array:"+ test);
+		}*/
+    	} catch (IOException e) {
+    		System.out.println("test");
+    		return null;
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			System.out.println(e.getMessage());
+			return null;
+		}
+    	} else {
+    		
+    		return points.get(index);
+    	}
+		
+	}
+    
+    public int[] read(int index) {
+    	
+    	if(testmap == null) {
+    	try {
+		FileInputStream fis = new FileInputStream("text.txt");
+		ObjectInputStream restore = new ObjectInputStream(fis);
+		//List<int[]> testmap = new ArrayList<int[]>();	
+		testmap = (ArrayList<int[]>)restore.readObject();
+		restore.close();
+		return testmap.get(index);
+		
+		/*for(int i=0; i < testmap.size(); i++) {
+			int test[] = testmap.get(i);
+			System.out.println("array:"+ test);
+		}*/
+    	} catch (IOException e) {
+    		System.out.println(e.getMessage());
+    		return null;
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			System.out.println("test123");
+			return null;
+		}
+    	} else {
+    		
+    		return testmap.get(index);
+    	}
+		
+	}
+    
+    public void write(int[] depth) {
+    	writetestmap.add(depth);
+		counterWrite++;
+		try {
+			if(counterWrite == 50) {
+				
+				FileOutputStream file = new FileOutputStream("output.txt");
+		        ObjectOutputStream stream = new ObjectOutputStream(file);
+		        stream.writeObject(testmap);
+				
+				stream.close();
+				System.out.println("klaar");
+				testmap = new ArrayList<int[]>();
+			}
+			
+		} catch (IOException e) {
+			
+			
+		}
+    	
+    }
+    
+    public void visualize(GL gl) {
+    	gl.glPointSize(size);
+		
+		gl.glBegin(GL.GL_POINTS);
+		gl.glEnable(gl.GL_PROGRAM_POINT_SIZE_EXT);
+		
+		Point[] pointField = readPoints(counter);
+		counter++;
+		if(counter == 8) {
+		 counter = 17;
+		}
+
+		for(int i=0; i<pointField.length; i++) {
+			
+			Point point = pointField[i];
+			gl.glVertex3f(point.x,point.y,point.z);
+			
+			//gl.glColor3f(color[0],color[1],color[2]);
+		}
+		gl.glColor3f(0.0f,1.0f,0.0f);
+		
+		gl. glEnd();
+    }
+    
+	public void visualizeb(GL gl) {
+		
+		
+		//int[] depth = frameBuffer.getFrame();
+		//int[] depth = kinect.getRawDepth();
+		//int[] depth = readUDP();
+		int[] depth = read(counter);
+		counter++;
+		if(counter == 40) {
+		 counter = 1;
+		}
+		
+		//writetestmap.add(depth);
+		//counterWrite++;
+		/*try {
+			if(counterWrite < 50) {
+				
+				FileOutputStream file = new FileOutputStream("output"+counterWrite+".txt");
+		        ObjectOutputStream stream = new ObjectOutputStream(file);
+		        stream.writeObject(depth);
+				
+				//stream.close();
+				System.out.println("klaar");
+				//writetestmap = new ArrayList<int[]>();
+			}
+			
+		} catch (IOException e) {
+			
+			
+		} */
+		
+		
+		
+		//System.out.println("heapsize"+Runtime.getRuntime().totalMemory());
+				
+		gl.glPointSize(size);
+		
+		gl.glBegin(GL.GL_POINTS);        // Draw The Cube Using quads
+		
+		int skip = 1;
+
+		System.out.println(counter);
+		
+		if(depth.length == 307200) {
+		gl.glEnable(gl.GL_PROGRAM_POINT_SIZE_EXT);
+		
+		for(int x=0; x<w; x+=skip) {
+            for(int y=0; y<h; y+=skip) {
+              int offset = x+y*w;
+
+              // Convert kinect data to world xyz coordinate
+              //int rawDepth = depth[y][x];
+              int rawDepth = depth[offset];
+              PVector v = depthToWorld(x,y,rawDepth);
+
+              float factor = 200;
+
+              gl.glVertex3f(v.x,v.y,v.z);
+              float[] color = depth2rgb((short) rawDepth);
+             
+              //System.out.println(color[2]);
+              
+              //gl.glColor3i(255, 128, 0);
+              //gl.glColor3f(color[0],color[1],color[2]);
+              
+           }
+          }
+		gl.glColor3f(0.0f,1.0f,0.0f);
+		
+	gl. glEnd();          // End Drawing The Cube
+		}
+	}
+	
+	float rawDepthToMeters(int depthValue) {
+        if (depthValue < 2047) {
+          return (float)(1.0 / ((double)(depthValue) * -0.0030711016 + 3.3309495161));
+        }
+        return 0.0f;
+      }
+
+      PVector depthToWorld(int x, int y, int depthValue) {
+
+        final double fx_d = 1.0 / 5.9421434211923247e+02;
+        final double fy_d = 1.0 / 5.9104053696870778e+02;
+        final double cx_d = 3.3930780975300314e+02;
+        final double cy_d = 2.4273913761751615e+02;
+
+        PVector result = new PVector();
+        double depth =  rawDepthToMeters(depthValue);
+        result.x = (float)((x - cx_d) * depth * fx_d);
+        result.y = (float)((y - cy_d) * depth * fy_d);
+        result.z = (float)(depth);
+        return result;
+      }
+      
+      static float[] depth2rgb(short depth)
+  	{
+  		int r,g,b;
+
+  		float v = depth / 2047f;
+  		v = (float) Math.pow(v, 3)* 6;
+  		v = v*6*256;
+
+  		int pval = Math.round(v);
+  		int lb = pval & 0xff;
+  		switch (pval>>8) {
+  		case 0:
+  			b = 255;
+  			g = 255-lb;
+  			r = 255-lb;
+  			break;
+  		case 1:
+  			b = 255;
+  			g = lb;
+  			r = 0;
+  			break;
+  		case 2:
+  			b = 255-lb;
+  			g = 255;
+  			r = 0;
+  			break;
+  		case 3:
+  			b = 0;
+  			g = 255;
+  			r = lb;
+  			break;
+  		case 4:
+  			b = 0;
+  			g = 255-lb;
+  			r = 255;
+  			break;
+  		case 5:
+  			b = 0;
+  			g = 0;
+  			r = 255-lb;
+  			break;
+  		default:
+  			r = 0;
+  			g = 0;
+  			b = 0;
+  			break;
+  		}
+
+  		/*int pixel = (0xFF) << 24
+  		| (b & 0xFF) << 16
+  		| (g & 0xFF) << 8
+  		| (r & 0xFF) << 0; */
+  		float pixel[] = new float[3];
+  		pixel[0] = (float)((1.0/255.0)*r);
+  		pixel[1] = (float)((1.0/255.0)*g);
+  		pixel[2] = (float)((1.0/255.0)*b);
+  		
+  		//System.out.println(pixel[0]);
+
+  		return pixel;
+  	}
+}

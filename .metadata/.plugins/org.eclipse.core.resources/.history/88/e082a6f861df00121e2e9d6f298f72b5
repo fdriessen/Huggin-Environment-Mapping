@@ -1,0 +1,12 @@
+import java.io.Serializable;
+import udpReader.ListPoints;
+
+
+public class PointCloudStitcher {
+	public native void icp();
+	public native void KinectData(int[] depth);
+	public native Object[] getPoints();
+    static {
+        System.loadLibrary("PointCloudStitcher");
+    }
+}

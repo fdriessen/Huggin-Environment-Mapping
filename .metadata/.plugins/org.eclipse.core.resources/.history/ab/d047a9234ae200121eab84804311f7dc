@@ -1,0 +1,108 @@
+package udpReader;
+
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+
+public class readerThread extends Thread {
+	private buffer frameBuffer;
+	private PointCloudStitcher stitcher;
+	
+	public readerThread(buffer buf) {
+		this.frameBuffer = buf;
+	}
+	
+	public static int[] convert(byte buf[]) {
+		   int intArr[] = new int[buf.length / 2];
+		   for(int i = 0; i < intArr.length; i= i+2) {
+		      intArr[i] = ByteBuffer.wrap(new byte[] {buf[i], buf[i+1]}).order(ByteOrder.LITTLE_ENDIAN).getShort();
+		   }
+		   return intArr;
+	}
+	
+	public static int[] convertTest(byte buf[],int length) {
+		   int intArr[] = new int[(length-2) / 2];
+		   System.out.println(intArr.length);
+		   for(int i = 2; i < intArr.length; i= i+2) {
+		      intArr[i] = ByteBuffer.wrap(new byte[] {buf[i], buf[i+1]}).order(ByteOrder.LITTLE_ENDIAN).getShort();
+		   }
+		   return intArr;
+	}
+	
+	 public void run() {
+		System.out.println("start");
+		 try {
+            int port = 8888;
+            DatagramSocket dsocket = new DatagramSocket(port);
+            byte[] buffer = new byte[914400];
+            byte[] buffer2 = new byte[0];
+            int[] frames = new int[307200];
+            boolean frame = false;
+            stitcher = new PointCloudStitcher();
+ 
+            DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+            while (true) {
+                dsocket.receive(packet);
+                
+                if(packet.getLength() < 6) {
+                	String msg = new String(buffer, 0, packet.getLength());
+
+                	if(msg.equals("start") == true) {
+                		System.out.println("start");
+                		frame = true;
+                		buffer2 = new byte[0];
+                	}
+                	if(msg.equals("end") == true) {
+                		System.out.println("end");
+                		frame = false;
+                		//int[] test = convert(buffer2);
+                		
+                		if(frames.length == 307200) {
+                			
+                			stitcher.KinectData(frames);
+                			//stitcher.icp();
+                			//stitcher.getInputPoints();
+                			//Point[] results  = (Point[])stitcher.getPoints();
+                			Point[] results = (Point[])stitcher.getInputPoints();
+                			System.out.println("c++"+results.length);
+                			frameBuffer.setFrame(results);
+                		}
+                	}
+                	
+                } else {
+                	
+                	if(frame == true) {
+                		byte[] data = packet.getData();
+                		int framenumber = ByteBuffer.wrap(new byte[] {data[0], data[1]}).order(ByteOrder.LITTLE_ENDIAN).getShort();
+                		int[] intdata = convertTest(data,packet.getLength());
+                		System.out.println(framenumber);
+                		int nr = 0;
+                		if((framenumber*intdata.length)-1 == -1)
+                		{
+                			nr = 0;
+                		} else {
+                			nr = (framenumber*intdata.length)-1;
+                		}
+                		
+                		System.arraycopy(intdata,0,frames,nr,(intdata.length-1000));
+                		
+                		/*System.out.println("lengtj"+packet.getLength()+"buffer"+data.length+"size:"+test.length+"nr:"+ByteBuffer.wrap(new byte[] {data[0], data[1]}).order(ByteOrder.LITTLE_ENDIAN).getShort());
+                		byte[] temp = new byte[buffer2.length + (packet.getLength()-2)];
+                		System.arraycopy(buffer2,0,temp,0,buffer2.length);
+                		System.arraycopy(packet.getData(),2,temp,buffer2.length,(packet.getLength()-2));
+                		buffer2 = temp;*/
+                	}
+
+                }
+
+                packet.setLength(buffer.length);
+            }
+            
+            //dsocket.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+		
+	}
+}
