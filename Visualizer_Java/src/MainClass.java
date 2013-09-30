@@ -34,8 +34,8 @@ public class MainClass {
 	private JLabel labelUDP,labelFILE, labelCheckbox;
 	private JCheckBox icpUDP;
 	private buffer frameBuffer;
-	private readerThread udp;
-	private fileThread file;
+	//private readerThread udp;
+	private fileThread udp;
 	private PointCloudStitcher stitcher;
 	
 	public MainClass() {
@@ -155,8 +155,8 @@ public class MainClass {
 		
 		frameBuffer = new buffer();
 		stitcher = new PointCloudStitcher();
-		udp = new readerThread(frameBuffer,stitcher);
-		file = new fileThread(frameBuffer,stitcher);
+		//udp = new readerThread(frameBuffer,stitcher);
+		udp = new fileThread(frameBuffer,stitcher);
 		//udp.start();
 		//file.start();
 		renderer.frameBuffer = frameBuffer;

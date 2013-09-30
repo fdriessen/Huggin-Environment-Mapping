@@ -26,7 +26,6 @@ public class readerThread extends Thread {
 	
 	public static int[] convertTest(byte buf[],int length) {
 		   int intArr[] = new int[(length-2) / 2];
-		   //System.out.println(intArr.length);
 		   int y = 0;
 		   for(int i = 2; i < length; i= i+2) {
 		      intArr[y] = ByteBuffer.wrap(new byte[] {buf[i], buf[i+1]}).order(ByteOrder.LITTLE_ENDIAN).getShort();
@@ -63,8 +62,7 @@ public class readerThread extends Thread {
             			if(msg.equals("end") == true) {
             				System.out.println("end");
             				frame = false;
-            				//int[] test = convert(buffer2);
-                		
+            				
             				if(frames.length == 307200) {
             					stitcher.KinectData(frames);
             					/*stitcher.KinectData(frames);
@@ -88,38 +86,16 @@ public class readerThread extends Thread {
             			}
                 	
             		} else {
-            			//byte[] data = packet.getData();
-            			//int framenumber = ByteBuffer.wrap(new byte[] {data[0], data[1]}).order(ByteOrder.LITTLE_ENDIAN).getShort();
-            			
-            			//System.out.println("nr:"+framenumber+"lenght:"+packet.getLength());
-            		
             			if(frame == true) {
             				byte[] data = packet.getData();
             				int framenumber = ByteBuffer.wrap(new byte[] {data[0], data[1]}).order(ByteOrder.LITTLE_ENDIAN).getShort();
             				int[] intdata = convertTest(data,packet.getLength());
-            				//System.out.println(framenumber+" lenght "+((framenumber*intdata.length)-1)+"-"+intdata.length);
             				int nr = 0;
                 		
-            				/*if((framenumber*intdata.length)-1 == -1)
-                			{
-                				nr = 0;
-                			} else {
-                				nr = (framenumber*32000)-1;
-                			}*/
             				nr = (framenumber*32000);
-                		
-            				/*if(framenumber == 9) {
-                				nr = 268799;
-                				System.out.println("test");
-                			}*/
-                		
+                	
             				System.arraycopy(intdata,0,frames,nr,(intdata.length));
                 		
-            				/*System.out.println("lengtj"+packet.getLength()+"buffer"+data.length+"size:"+test.length+"nr:"+ByteBuffer.wrap(new byte[] {data[0], data[1]}).order(ByteOrder.LITTLE_ENDIAN).getShort());
-                			byte[] temp = new byte[buffer2.length + (packet.getLength()-2)];
-                			System.arraycopy(buffer2,0,temp,0,buffer2.length);
-                			System.arraycopy(packet.getData(),2,temp,buffer2.length,(packet.getLength()-2));
-                			buffer2 = temp;*/
             			}
             		}
 

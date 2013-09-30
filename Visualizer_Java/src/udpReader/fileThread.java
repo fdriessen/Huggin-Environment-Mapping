@@ -41,11 +41,11 @@ public class fileThread extends Thread {
 			System.out.println("array:"+ test);
 		}*/
     	} catch (IOException e) {
-    		System.out.println("read"+e.getMessage());
+    		System.out.println("Fout:"+e.getMessage());
     		return null;
 		} catch (ClassNotFoundException e) {
 			// TODO Auto-generated catch block
-			System.out.println("test123");
+			System.out.println("Fout:"+e.getMessage());
 			return null;
 		}
     	} else {
@@ -61,8 +61,6 @@ public class fileThread extends Thread {
         {
 		//stitcher = new PointCloudStitcher();
 			while (running) {
-			
-			
 				if(counter < max) {
 				
 					int[] frames = read(counter);
@@ -77,22 +75,24 @@ public class fileThread extends Thread {
         				if(runICP) {
         					System.out.println("stitch");
         					stitcher.icp();
-        					results = (Point[])stitcher.getInputPoints();
+        					results = (Point[])stitcher.getPoints();
         				} else {
         					results = (Point[])stitcher.getInputPoints();
         				}
         				frameBuffer.setFrame(results);
 					}
 
-					counter++;
+					//counter++;
+					
+					counter = counter+5;
 				} else {
 					//counter = 0;
 				}
-				/*try {
+				try {
 			    	Thread.sleep(250);
 				} catch(InterruptedException ex) {
 			    	Thread.currentThread().interrupt();
-				}*/
+				}
 			}
         }
 
